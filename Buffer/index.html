@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <title>Modern Login Page | AsmrProg</title>
+</head>
+
+<body>
+
+    <div class="container" id="container">
+        <div class="form-container sign-up">
+            <form id="signUpForm">
+                <!-- Back Arrow (Initially Hidden) -->
+                <i class="fas fa-arrow-left back-arrow" id="back-arrow"></i>
+                
+                <h1>Create Account</h1>
+                
+                <!-- Step 1: Role Selection -->
+                <div class="role-selection-container">
+                    <span class="form-instruction">First, please select your role</span>
+                    <div class="role-options">
+                        <div class="role-option" data-role="citizen">Citizen</div>
+                        <div class="role-option" data-role="validator">Validator</div>
+                        <div class="role-option" data-role="analyst">Analyst</div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Registration Details (Initially Hidden) -->
+                <div id="registration-details" class="hidden-section">
+                    <span class="form-instruction">Provide at least one contact method for verification</span>
+                    <input type="text" placeholder="Name" id="name-input">
+                    <input type="email" placeholder="Email (Optional)" id="email-input">
+                    <input type="tel" placeholder="Phone Number (Optional)" id="phone-input">
+                    <input type="password" placeholder="Password" id="password-input">
+                    <div class="robot-check">
+                        <input type="checkbox" id="robot-check-input">
+                        <label for="robot-check-input">I'm not a robot</label>
+                    </div>
+                    <button type="submit" id="continue-btn">Continue</button>
+                </div>
+
+                <!-- Step 3: OTP Verification (Initially Hidden) -->
+                <div id="otp-verification-section" class="hidden-section">
+                    <span class="form-instruction">Please verify the contact methods you provided.</span>
+                    
+                    <!-- Email OTP Group (Conditional) -->
+                    <div id="email-otp-group" class="otp-group hidden-section">
+                        <label for="email-otp-input">Email OTP</label>
+                        <div class="otp-input-wrapper">
+                            <input type="text" placeholder="Enter Email OTP" id="email-otp-input">
+                            <button type="button" class="verify-otp-btn" id="verify-email-btn">Verify</button>
+                            <i class="fas fa-check-circle verified-icon"></i>
+                        </div>
+                    </div>
+
+                    <!-- Phone OTP Group (Conditional) -->
+                    <div id="phone-otp-group" class="otp-group hidden-section">
+                        <label for="phone-otp-input">Phone OTP</label>
+                        <div class="otp-input-wrapper">
+                             <input type="text" placeholder="Enter Phone OTP" id="phone-otp-input">
+                             <button type="button" class="verify-otp-btn" id="verify-phone-btn">Verify</button>
+                             <i class="fas fa-check-circle verified-icon"></i>
+                        </div>
+                    </div>
+
+                    <button type="button" id="create-account-btn" class="hidden-section">Create Account</button>
+                </div>
+
+                <div id="form-error" class="error-message"></div>
+            </form>
+        </div>
+        <div class="form-container sign-in">
+            <form>
+                <h1>Sign In</h1>
+                <div class="social-icons">
+                    <a href="#" class="icon"><i class="fa-brands fa-google-plus-g"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-github"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-linkedin-in"></i></a>
+                </div>
+                <span>or use your email password</span>
+                <input type="email" placeholder="Email">
+                <input type="password" placeholder="Password">
+                <a href="#">Forget Your Password?</a>
+                <button>Sign In</button>
+            </form>
+        </div>
+        <div class="toggle-container">
+            <div class="toggle">
+                <div class="toggle-panel toggle-left">
+                    <h1>Welcome Back!</h1>
+                    <p>Enter your personal details to use all of site features</p>
+                    <button class="hidden" id="login">Sign In</button>
+                </div>
+                <div class="toggle-panel toggle-right">
+                    <h1>Hello, Friend!</h1>
+                    <p>Register with your personal details to use all of site features</p>
+                    <button class="hidden" id="register">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
