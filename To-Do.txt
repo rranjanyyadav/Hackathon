@@ -1,0 +1,22 @@
+To-Do
+Login page
+	- login id 
+	-password 
+	-forgot password
+	-authority level
+app
+	-SOS button
+	-geotag camera
+	-grid view of feed
+	-live alerts
+	-Hotspots
+	-chatbot
+*OFFLINE 
+	-map download
+	-safety tips
+	-emergency contact info
+EXTRAS:- 
+	-WhatsApp chat
+	-weather based prediction priority
+	-past data based priority 
+	
