@@ -3,9 +3,10 @@ Login page
 	- login id 
 	-password 
 	-forgot password
-	-authority level
+	-OTP login
+	-authority level (citizen ranking point system)
 app
-	-SOS button
+	-SOS button(3 sec timmer and slide)
 	-geotag camera
 	-grid view of feed
 	-live alerts
