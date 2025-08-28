@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Unified Ocean Hazard Reporting Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <h1>Unified Ocean Hazard Reporting Platform</h1>
+    <p>
+      Empowering citizens, volunteers, and analysts to report and monitor ocean hazards for safer coasts.
+    </p>
+  </header>
+  <div class="container">
+    <h2>Sign Up / Sign In</h2>
+    <div class="desc">
+      Register to report ocean hazards, view live crowd reports, and help authorities respond faster.<br>
+      <span style="color:#f6e58d;">Roles:</span> Citizen, Volunteer, Analyst
+    </div>
+    <div id="role-section">
+      <select id="role">
+        <option value="">Select Role</option>
+        <option value="Citizen">Citizen</option>
+        <option value="Volunteer">Volunteer</option>
+        <option value="Analyst">Analyst</option>
+      </select>
+    </div>
+    <div id="login-section">
+      <input type="tel" id="phoneNumber" placeholder="Phone (XXXXXXXXXX)" maxlength="10"/>
+      <input type="email" id="email" placeholder="Email (optional)" />
+      <input type="password" id="password" placeholder="Password (for email)" />
+      <div id="recaptcha-container"></div>
+      <button onclick="sendOTP()">Send OTP (Phone)</button>
+      <button onclick="signInEmail()">Sign In (Email)</button>
+      <button onclick="signUpEmail()">Sign Up (Email)</button>
+    </div>
+    <div id="otp-section" style="display:none;">
+      <input type="text" id="otpCode" placeholder="Enter OTP" />
+      <button onclick="verifyOTP()">Verify OTP</button>
+    </div>
+    <p id="message"></p>
+  </div>
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCFbwTesx_LvUevJsO6VSUGbKUOmOfVLUA",
+      authDomain: "search-page-59af4.firebaseapp.com",
+      databaseURL: "https://search-page-59af4-default-rtdb.firebaseio.com",
+      projectId: "search-page-59af4",
+      storageBucket: "search-page-59af4.appspot.com",
+      messagingSenderId: "627269108316",
+      appId: "1:627269108316:web:80c57390d850fda15a9c99",
+      measurementId: "G-K91XW4NBP7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+
+    let confirmationResult;
+
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      size: 'normal',
+      callback: (response) => {
+        // reCAPTCHA solved
+      }
+    });
+    window.recaptchaVerifier.render();
+
+    window.sendOTP = function () {
+      const phone = "+91" + document.getElementById("phoneNumber").value;
+      const role = document.getElementById("role").value;
+      if (!document.getElementById("phoneNumber").value) {
+        document.getElementById("message").innerText = "Phone number is required";
+        return;
+      }
+      if (!role) {
+        document.getElementById("message").innerText = "Role is required";
+        return;
+      }
+      signInWithPhoneNumber(auth, phone, window.recaptchaVerifier)
+        .then((result) => {
+          confirmationResult = result;
+          document.getElementById("login-section").style.display = "none";
+          document.getElementById("otp-section").style.display = "block";
+          document.getElementById("message").innerText = "OTP sent ✔️";
+        })
+        .catch((error) => {
+          console.error(error);
+          document.getElementById("message").innerText = "Error sending OTP ❌";
+        });
+    };
+
+    window.verifyOTP = function () {
+      const code = document.getElementById("otpCode").value;
+      if (!confirmationResult) {
+        document.getElementById("message").innerText = "Please request OTP first.";
+        return;
+      }
+      confirmationResult.confirm(code).then((result) => {
+        const user = result.user;
+        const role = document.getElementById("role").value;
+        document.getElementById("message").innerText = `Login successful 👋 Welcome ${user.phoneNumber} (${role})`;
+      }).catch((error) => {
+        console.error(error);
+        document.getElementById("message").innerText = "Invalid OTP ❌";
+      });
+    };
+
+    window.signUpEmail = function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const role = document.getElementById("role").value;
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email) {
+        document.getElementById("message").innerText = "Email is required for sign-up";
+        return;
+      }
+      if (!password) {
+        document.getElementById("message").innerText = "Password is required for sign-up";
+        return;
+      }
+      if (!role) {
+        document.getElementById("message").innerText = "Role is required for sign-up";
+        return;
+      }
+      if (!emailPattern.test(email)) {
+        document.getElementById("message").innerText = "Please enter a valid email address.";
+        return;
+      }
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          document.getElementById("message").innerText = `Sign-up successful 👋 Welcome ${email} (${role})`;
+        })
+        .catch((error) => {
+          document.getElementById("message").innerText = error.message;
+        });
+    };
+
+    window.signInEmail = function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const role = document.getElementById("role").value;
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email) {
+        document.getElementById("message").innerText = "Email is required for sign-in";
+        return;
+      }
+      if (!password) {
+        document.getElementById("message").innerText = "Password is required for sign-in";
+        return;
+      }
+      if (!role) {
+        document.getElementById("message").innerText = "Role is required for sign-in";
+        return;
+      }
+      if (!emailPattern.test(email)) {
+        document.getElementById("message").innerText = "Please enter a valid email address.";
+        return;
+      }
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          document.getElementById("message").innerText = `Login successful 👋 Welcome ${email} (${role})`;
+        })
+        .catch((error) => {
+          document.getElementById("message").innerText = error.message;
+        });
+    };
+  </script>
+</body>
+</html>
+<!-- Link external CSS and JS files -->
+<link rel="stylesheet" href="style.css">
+<script src="script.js"></script>
