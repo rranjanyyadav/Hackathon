@@ -12,6 +12,9 @@ app
 	-live alerts
 	-Hotspots
 	-chatbot
+	-Disaster shelter
+	-weather Based notification alert
+	-point based system for offical account 
 *OFFLINE 
 	-map download
 	-safety tips
