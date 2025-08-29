@@ -16,9 +16,9 @@ app
 	-map download
 	-safety tips
 	-emergency contact info
-EXTRAS:- 
+EXTRAS:-
 	-WhatsApp chat
 	-weather based prediction priority
-	-past data based priority 
--authority level (citizen ranking point system)
-	
+	-past data based priority & warning citizens early
+	-authority level (citizen ranking point system)
+
