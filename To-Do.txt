@@ -4,7 +4,7 @@ Login page
 	-password 
 	-forgot password
 	-OTP login
-	-authority level (citizen ranking point system)
+	
 app
 	-SOS button(3 sec timmer and slide)
 	-geotag camera
@@ -20,4 +20,5 @@ EXTRAS:-
 	-WhatsApp chat
 	-weather based prediction priority
 	-past data based priority 
+-authority level (citizen ranking point system)
 	
