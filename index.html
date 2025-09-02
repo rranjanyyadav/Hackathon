@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Ocean Hazard Bot</title>
+    <!-- Use Tailwind CSS for a modern, responsive design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e5ddd5;
+        }
+        .chat-container {
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #a8a8a8 #f4f4f4;
+        }
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-container::-webkit-scrollbar-track {
+            background: #f4f4f4;
+            border-radius: 10px;
+        }
+        .chat-container::-webkit-scrollbar-thumb {
+            background-color: #a8a8a8;
+            border-radius: 10px;
+            border: 2px solid #f4f4f4;
+        }
+        .message-bubble {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            position: relative;
+            margin-bottom: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #dcf8c6;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .bot-message {
+            background-color: #fff;
+            align-self: flex-start;
+            margin-right: auto;
+        }
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #3b3b3b;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        .selection-panel {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            padding: 1rem;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -2px rgba(0, 0, 0, 0.06);
+            transform: translateY(100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        .selection-panel.open {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-sm md:max-w-md lg:max-w-lg overflow-hidden flex flex-col h-[90vh] md:h-[80vh] lg:h-[70vh] relative">
+        <!-- Header -->
+        <div class="bg-[#075e54] text-white p-4 flex items-center rounded-t-lg">
+            <div class="w-10 h-10 bg-gray-300 rounded-full overflow-hidden flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM8.5 15.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm7-3a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm-3.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+                </svg>
+            </div>
+            <div class="ml-4">
+                <h1 class="text-lg font-semibold">Ocean Hazard Bot</h1>
+                <p class="text-xs text-green-200">online</p>
+            </div>
+        </div>
+
+        <!-- Chat messages area -->
+        <div id="chat-messages" class="chat-container p-4 flex flex-col gap-2 flex-grow bg-[#e5ddd5]">
+            <!-- Initial bot message -->
+            <div class="message-bubble bot-message shadow">
+                Hello! I am the official bot for the Integrated Platform for Crowdsourced Ocean Hazard Reporting. How can I help you? You can say "report a hazard" or ask about current alerts.
+            </div>
+        </div>
+        
+        <!-- Quick action buttons -->
+        <div class="p-2 flex flex-wrap justify-center gap-2 bg-gray-100 border-t border-gray-200">
+            <button class="quick-button px-4 py-2 bg-[#128c7e] text-white rounded-full text-sm font-medium shadow-md hover:bg-[#075e54] transition-colors duration-200" data-message="Report a hazard">
+                Report a hazard
+            </button>
+            <button class="quick-button px-4 py-2 bg-white text-[#128c7e] border border-[#128c7e] rounded-full text-sm font-medium shadow-md hover:bg-gray-100 transition-colors duration-200" data-message="What are the current alerts?">
+                Current alerts
+            </button>
+            <button class="quick-button px-4 py-2 bg-white text-[#128c7e] border border-[#128c7e] rounded-full text-sm font-medium shadow-md hover:bg-gray-100 transition-colors duration-200" data-message="How does this platform work?">
+                How it works
+            </button>
+        </div>
+
+        <!-- Input area -->
+        <div class="p-2 bg-gray-200 flex items-center">
+            <button id="location-button" class="bg-gray-300 text-gray-600 p-2 rounded-full hover:bg-gray-400 transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2c-4.41 0-8 3.59-8 8 0 4.42 3.59 8 8 8s8-3.58 8-8c0-4.41-3.59-8-8-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
+                </svg>
+            </button>
+            <input type="file" id="file-input" class="hidden" accept="image/*, .pdf, .docx, .txt">
+            <button id="file-button" class="bg-gray-300 text-gray-600 p-2 rounded-full hover:bg-gray-400 transition-colors duration-200 ml-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
+                </svg>
+            </button>
+            <input type="text" id="user-input" placeholder="Type a message..." class="flex-grow p-3 mx-2 rounded-full bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#075e54] transition-all duration-200">
+            <button id="send-button" class="bg-[#075e54] text-white p-3 rounded-full hover:bg-[#128c7e] transition-colors duration-200 flex items-center justify-center shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Selection Panel -->
+        <div id="selection-panel" class="selection-panel">
+            <h3 id="panel-title" class="text-md font-semibold mb-3 text-center"></h3>
+            <div id="panel-options" class="flex flex-col gap-2"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatMessages = document.getElementById('chat-messages');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            const fileButton = document.getElementById('file-button');
+            const fileInput = document.getElementById('file-input');
+            const locationButton = document.getElementById('location-button');
+            const selectionPanel = document.getElementById('selection-panel');
+            const panelTitle = document.getElementById('panel-title');
+            const panelOptions = document.getElementById('panel-options');
+
+            let currentLocation = null;
+            let currentPanelState = null;
+
+            const hazardOptions = {
+                'initial': {
+                    title: 'What type of hazard would you like to report?',
+                    options: [
+                        'Marine Debris',
+                        'Dangerous Currents',
+                        'Pollution',
+                        'Wildlife Entanglement',
+                        'Navigation Hazard',
+                        'Other',
+                    ]
+                },
+                'Marine Debris': {
+                    title: 'Can you describe the debris?',
+                    options: [
+                        'Large objects (e.g., nets, barrels)',
+                        'Small plastics',
+                        'Floating garbage',
+                        'Tangled fishing gear',
+                    ]
+                },
+                'Dangerous Currents': {
+                    title: 'What is the nature of the current?',
+                    options: [
+                        'Strong rip current',
+                        'Unusual tidal surge',
+                        'Rogue waves',
+                    ]
+                },
+                'Pollution': {
+                    title: 'What kind of pollution is it?',
+                    options: [
+                        'Oil spill',
+                        'Chemical leak',
+                        'Sewage overflow',
+                        'Unidentified substance',
+                    ]
+                },
+                'Wildlife Entanglement': {
+                    title: 'What kind of animal is affected?',
+                    options: [
+                        'Bird',
+                        'Fish',
+                        'Marine mammal',
+                        'Other',
+                    ]
+                },
+                'Navigation Hazard': {
+                    title: 'What is the navigation hazard?',
+                    options: [
+                        'Drifting vessel',
+                        'Submerged object',
+                        'Debris field',
+                        'Out-of-place buoy',
+                    ]
+                },
+                'Other': {
+                    title: 'Please describe the hazard in more detail.',
+                    options: []
+                }
+            };
+            
+            const openPanel = (type) => {
+                const data = hazardOptions[type];
+                if (!data) return;
+
+                panelTitle.textContent = data.title;
+                panelOptions.innerHTML = ''; // Clear previous options
+
+                if (type !== 'initial') {
+                    const backButton = document.createElement('button');
+                    backButton.classList.add('px-4', 'py-2', 'bg-gray-200', 'text-gray-700', 'rounded-full', 'text-sm', 'font-medium', 'hover:bg-gray-300', 'transition-colors', 'duration-200', 'mb-2');
+                    backButton.textContent = 'Back';
+                    backButton.addEventListener('click', () => {
+                        openPanel('initial');
+                    });
+                    panelOptions.appendChild(backButton);
+                }
+
+                data.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.classList.add('px-4', 'py-2', 'bg-gray-100', 'text-[#128c7e]', 'border', 'border-[#128c7e]', 'rounded-full', 'text-sm', 'font-medium', 'shadow-sm', 'hover:bg-gray-200', 'transition-colors', 'duration-200');
+                    button.textContent = option;
+                    button.addEventListener('click', () => {
+                        handlePanelSelection(option);
+                    });
+                    panelOptions.appendChild(button);
+                });
+
+                if (data.options.length === 0) {
+                    userInput.focus();
+                    selectionPanel.classList.remove('open');
+                } else {
+                    selectionPanel.classList.add('open');
+                }
+                currentPanelState = type;
+            };
+
+            const handlePanelSelection = (selection) => {
+                if (hazardOptions[selection]) {
+                    openPanel(selection);
+                } else {
+                    sendMessage(selection);
+                    selectionPanel.classList.remove('open');
+                }
+            };
+
+            const getLocation = () => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            currentLocation = {
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude
+                            };
+                            appendMessage("Location shared successfully!", 'user');
+                        },
+                        (error) => {
+                            console.error("Geolocation error:", error);
+                            appendMessage("Could not get your location. Please check your browser permissions.", 'bot');
+                        }
+                    );
+                } else {
+                    appendMessage("Geolocation is not supported by your browser.", 'bot');
+                }
+            };
+            
+            const base64EncodeFile = (file) => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            };
+
+            const sendMessage = async (messageTextFromButton = null) => {
+                const messageText = messageTextFromButton || userInput.value.trim();
+                const file = fileInput.files[0];
+                let hasContent = false;
+                
+                let userParts = [];
+                if (messageText !== "") {
+                    userParts.push({ text: messageText });
+                    hasContent = true;
+                }
+                
+                if (file) {
+                    try {
+                        const base64Data = await base64EncodeFile(file);
+                        userParts.push({
+                            inlineData: {
+                                mimeType: file.type,
+                                data: base64Data
+                            }
+                        });
+                        hasContent = true;
+                        appendFile(file);
+                    } catch (error) {
+                        console.error("Error encoding file:", error);
+                        appendMessage("Sorry, there was an error processing your file.", 'bot');
+                        return;
+                    }
+                }
+                
+                // Add location data to the message if available
+                if (currentLocation) {
+                    const locationText = `My current location is Latitude: ${currentLocation.latitude}, Longitude: ${currentLocation.longitude}.`;
+                    userParts.push({ text: locationText });
+                }
+                
+                if (!hasContent) return;
+                
+                // Add user message to the chat
+                appendMessage(messageText, 'user');
+                userInput.value = '';
+                fileInput.value = ''; // Reset file input
+
+                showTypingIndicator();
+                
+                try {
+                    // This is where you need to enter your API key for local use.
+                    // The Canvas environment handles this automatically.
+                    const apiKey = "AIzaSyD9nLAkwGy_1VdoWenKH6FPBgVIOp6Jrv8";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                    const systemPrompt = "You are a friendly and helpful chatbot for a Crowdsourced Ocean Hazard Reporting platform. Your purpose is to help users report hazards, ask about current alerts, and provide general information about ocean safety. Keep your responses concise and conversational. When asked to report a hazard, guide the user to provide details like type of hazard. You can mention concepts like 'geotagged reports', 'hotspot heatmap', and 'AI-driven severity detection' from the project idea to add authenticity. If the user's location is provided, use it to make your response more specific and helpful.";
+                    
+                    const payload = {
+                        contents: [{ role: "user", parts: userParts }],
+                        tools: [{ "google_search": {} }],
+                        systemInstruction: {
+                            parts: [{ text: systemPrompt }]
+                        },
+                    };
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error("API call failed:", response.status, errorText);
+                        throw new Error(`API call failed with status ${response.status}: ${errorText}`);
+                    }
+
+                    const result = await response.json();
+                    const botResponse = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't get a response. Please try again.";
+                    
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        appendMessage(botResponse, 'bot');
+                    }, 500);
+                } catch (error) {
+                    console.error("Error fetching bot response:", error);
+                    hideTypingIndicator();
+                    appendMessage("Sorry, there was an error connecting to the bot. Please try again later.", 'bot');
+                }
+            };
+
+            const appendMessage = (text, sender) => {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message-bubble', sender === 'user' ? 'user-message' : 'bot-message', 'shadow-md');
+                messageElement.textContent = text;
+                chatMessages.appendChild(messageElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the bottom
+            };
+            
+            const appendFile = (file) => {
+                const fileElement = document.createElement('div');
+                fileElement.classList.add('message-bubble', 'user-message', 'shadow-md');
+                
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    img.classList.add('rounded-lg', 'mt-2', 'max-w-full', 'h-auto');
+                    fileElement.appendChild(img);
+                } else {
+                    const fileText = document.createElement('span');
+                    fileText.textContent = `Attached file: ${file.name}`;
+                    fileElement.appendChild(fileText);
+                }
+                
+                chatMessages.appendChild(fileElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            };
+
+            const showTypingIndicator = () => {
+                const typingDiv = document.createElement('div');
+                typingDiv.id = 'typing-indicator';
+                typingDiv.classList.add('typing-indicator', 'bot-message', 'shadow-md', 'flex', 'items-center', 'space-x-1', 'w-16');
+                typingDiv.innerHTML = '<span></span><span></span><span></span>';
+                chatMessages.appendChild(typingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            };
+
+            const hideTypingIndicator = () => {
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            };
+
+            // Event listeners for quick buttons
+            document.querySelectorAll('.quick-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const message = button.getAttribute('data-message');
+                    if (message === 'Report a hazard') {
+                        openPanel('initial');
+                    } else {
+                        selectionPanel.classList.remove('open');
+                        sendMessage(message);
+                    }
+                });
+            });
+
+            sendButton.addEventListener('click', () => sendMessage());
+            userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            fileButton.addEventListener('click', () => {
+                fileInput.click();
+            });
+            locationButton.addEventListener('click', getLocation);
+        });
+    </script>
+</body>
+</html>
